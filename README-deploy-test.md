@@ -314,7 +314,3 @@ Résultat attendu :
 Tu peux maintenant accéder à l’application via ton navigateur :
 **Webapp** : [http://192.168.49.2:30080](http://192.168.49.2:30080)
 **API Gateway** : [http://192.168.49.2:30020](http://192.168.49.2:30020)
-
-
-
-## nslookup
