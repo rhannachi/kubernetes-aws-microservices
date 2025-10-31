@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: queue
-          image: richardchesterwood/k8s-fleetman-queue:release1
+          image: richardchesterwood/k8s-fleetman-queue:release2
           ports:
             - containerPort: 8161
               name: queue-port
@@ -53,7 +53,7 @@ spec:
     spec:
       containers:
         - name: position-simulator
-          image: richardchesterwood/k8s-fleetman-position-simulator:release1
+          image: richardchesterwood/k8s-fleetman-position-simulator:release2
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: production-microservice
@@ -75,7 +75,7 @@ spec:
     spec:
       containers:
         - name: position-tracker
-          image: richardchesterwood/k8s-fleetman-position-tracker:release1
+          image: richardchesterwood/k8s-fleetman-position-tracker:release3
           ports:
             - containerPort: 8080
               name: tracker-port
@@ -113,7 +113,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: richardchesterwood/k8s-fleetman-api-gateway:release1-multi
+          image: richardchesterwood/k8s-fleetman-api-gateway:release2-multi
           ports:
             - containerPort: 8080
               name: gateway-port
@@ -152,7 +152,7 @@ spec:
     spec:
       containers:
         - name: webapp
-          image: richardchesterwood/k8s-fleetman-webapp-angular:release1-multi
+          image: richardchesterwood/k8s-fleetman-webapp-angular:release2-multi
           ports:
             - containerPort: 80
               name: webapp-port

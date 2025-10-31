@@ -4,7 +4,7 @@
 
 Dans un premier temps, nous allons **empêcher** le déploiement correct de ces deux pods pour vérifier que la file de messages reste vide.
 
-Pour cela, commente les variables d’environnement des conteneurs dans ton fichier `workloads.yaml` :
+Pour cela, commente les variables d’environnement des conteneurs dans ton fichier [workloads.yaml](k8s/base/workloads.yaml) :
 
 ```yaml
 ...

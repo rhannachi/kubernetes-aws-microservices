@@ -1,0 +1,33 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: mylocalstorage
+provisioner: kubernetes.io/no-provisioner  # Indique qu'il n'y a pas de provisionnement automatique (stockage local statique)
+reclaimPolicy: Delete                      # Politique : supprimer le PersistentVolume lorsque le PVC associé est supprimé
+volumeBindingMode: WaitForFirstConsumer    # Le volume est attribué uniquement lorsque le Pod qui l'utilise est planifié (utile pour volumes locaux)
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  storageClassName: mylocalstorage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage
+spec:
+  storageClassName: mylocalstorage
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/directory/"
+    type: DirectoryOrCreate
