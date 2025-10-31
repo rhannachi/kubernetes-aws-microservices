@@ -48,8 +48,9 @@ L’architecture **microservices** de cette application est basée sur les image
         │ (microservice) │   └────────────────┘   │ - Calcule vitesse│
         │ - Simule GPS   │                        │ - Historique pos.│
         │ - Publie msgs  │                        └──────────────────┘
-        │   → ActiveMQ   │            
-        └────────────────┘           
+        │   → ActiveMQ   │                                 │
+        └────────────────┘                                 ▼
+                                                         mongodb
                                       
                                      
 ```

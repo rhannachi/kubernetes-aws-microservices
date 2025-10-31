@@ -1,4 +1,8 @@
-## Tester et déployer au fur et à mesure
+## Tester et déployer au fur et à mesure sur Minikube
+
+L’objectif est de comprendre le déploiement des différentes parties de notre stack Kubernetes.\
+Dans cette section, nous nous concentrerons sur le déploiement de notre stack sur Minikube, plus précisément sur le déploiement de l’environnement de développement (overlays/dev) à l’aide de Kustomize.\
+**[k8s/overlays/dev/kustomization.yaml](k8s/overlays/dev/kustomization.yaml)**
 
 ### 1. Simuler un bug dans `position-tracker` et `position-simulator`
 
@@ -11,7 +15,7 @@ Pour cela, commente les variables d’environnement des conteneurs dans ton fich
     spec:
       containers:
         - name: position-simulator
-          image: richardchesterwood/k8s-fleetman-position-simulator:release1
+          image: richardchesterwood/k8s-fleetman-position-simulator:release2
           #env:
           #  - name: SPRING_PROFILES_ACTIVE
           #    value: production-microservice
@@ -19,7 +23,7 @@ Pour cela, commente les variables d’environnement des conteneurs dans ton fich
     spec:
       containers:
         - name: position-tracker
-          image: richardchesterwood/k8s-fleetman-position-tracker:release1
+          image: richardchesterwood/k8s-fleetman-position-tracker:release3
           ports:
             - containerPort: 8080
               name: tracker-port
@@ -33,7 +37,7 @@ L’objectif est que les pods `position-tracker` et `position-simulator` ne dém
 Déploie la configuration :
 
 ```bash
-kubectl apply -f workloads.yaml
+kubectl apply -k k8s/overlays/dev
 ```
 
 Vérifie ensuite l’état des déploiements :
@@ -46,11 +50,12 @@ Résultat attendu :
 
 ```
 NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-api-gateway          1/1     1            1           111s
-position-simulator   0/1     1            0           111s
-position-tracker     0/1     1            0           111s
-queue                1/1     1            1           111s
-webapp               1/1     1            1           111s
+api-gateway          1/1     1            1           52m
+mongodb              1/1     1            1           51m
+position-simulator   0/1     1            0           52m
+position-tracker     0/1     1            0           52m
+queue                1/1     1            1           52m
+webapp               1/1     1            1           52m
 ```
 
 ---
@@ -95,7 +100,7 @@ Décommente uniquement les variables d’environnement du pod `position-simulato
     spec:
       containers:
         - name: position-simulator
-          image: richardchesterwood/k8s-fleetman-position-simulator:release1
+          image: richardchesterwood/k8s-fleetman-position-simulator:release2
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: production-microservice
@@ -105,7 +110,7 @@ Décommente uniquement les variables d’environnement du pod `position-simulato
 Applique les changements :
 
 ```bash
-kubectl apply -f workloads.yaml 
+kubectl apply -k k8s/overlays/dev 
 kubectl get deployment
 ```
 
@@ -113,11 +118,12 @@ Résultat attendu :
 
 ```
 NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-api-gateway          1/1     1            1           12m
-position-simulator   1/1     1            1           12m
-position-tracker     0/1     1            0           12m
-queue                1/1     1            1           12m
-webapp               1/1     1            1           12m
+api-gateway          1/1     1            1           71s
+mongodb              1/1     1            1           71s
+position-simulator   1/1     1            1           71s
+position-tracker     0/1     1            0           71s
+queue                1/1     1            1           71s
+webapp               1/1     1            1           71s
 ```
 
 Dans l’interface **ActiveMQ**, tu verras que les compteurs **Messages Enqueued** et **Pending Messages** augmentent :
@@ -135,7 +141,7 @@ Enfin, décommente les variables d’environnement du pod `position-tracker` pou
     spec:
       containers:
         - name: position-tracker
-          image: richardchesterwood/k8s-fleetman-position-tracker:release1
+          image: richardchesterwood/k8s-fleetman-position-tracker:release3
           ports:
             - containerPort: 8080
               name: tracker-port
@@ -148,7 +154,7 @@ Enfin, décommente les variables d’environnement du pod `position-tracker` pou
 Applique les changements :
 
 ```bash
-kubectl apply -f workloads.yaml 
+kubectl apply -k k8s/overlays/dev 
 kubectl get deployment
 ```
 
@@ -156,11 +162,12 @@ Résultat attendu :
 
 ```
 NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-api-gateway          1/1     1            1           12m
-position-simulator   1/1     1            1           12m
-position-tracker     1/1     1            1           12m
-queue                1/1     1            1           12m
-webapp               1/1     1            1           12m
+api-gateway          1/1     1            1           3m4s
+mongodb              1/1     1            1           3m4s
+position-simulator   1/1     1            1           3m4s
+position-tracker     1/1     1            1           3m4s
+queue                1/1     1            1           3m4s
+webapp               1/1     1            1           3m4s
 ```
 
 Dans l’interface **ActiveMQ**, tu verras que :
@@ -199,7 +206,7 @@ Grâce à cette configuration, le service `position-tracker` devient accessible 
 Déploie la configuration mise à jour :
 
 ```bash
-kubectl apply -f workloads.yaml
+kubectl apply -k k8s/overlays/dev
 ```
 
 Vérifie ensuite l’exposition du service :

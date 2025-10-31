@@ -13,20 +13,22 @@ Vérifier que :
 
 ```bash
 kubectl get pods -o wide
-NAME                                  READY   STATUS    RESTARTS   AGE    IP            NODE       NOMINATED NODE   READINESS GATES
-api-gateway-cf5578c8c-7rrrl           1/1     Running   0          104m   10.244.0.31   minikube   <none>           <none>
-position-simulator-64f5cd6557-hls9g   1/1     Running   0          114m   10.244.0.24   minikube   <none>           <none>
-position-tracker-7db5c5bd6d-xpksm     1/1     Running   0          114m   10.244.0.25   minikube   <none>           <none>
-queue-5c7df485c6-kpnsl                1/1     Running   0          114m   10.244.0.23   minikube   <none>           <none>
-webapp-68b5dfbdc7-q6ftk               1/1     Running   0          106m   10.244.0.30   minikube   <none>           <none>
+NAME                                  READY   STATUS    RESTARTS   AGE     IP            NODE       NOMINATED NODE   READINESS GATES
+api-gateway-69f87647b4-l48v6          1/1     Running   0          7m45s   10.244.0.12   minikube   <none>           <none>
+mongodb-84d458c5dc-gwnsv              1/1     Running   0          7m45s   10.244.0.17   minikube   <none>           <none>
+position-simulator-764c5b5c4b-qdj78   1/1     Running   0          6m59s   10.244.0.18   minikube   <none>           <none>
+position-tracker-5c8db98b74-d8b88     1/1     Running   0          5m26s   10.244.0.19   minikube   <none>           <none>
+queue-98f6cb787-2rdw7                 1/1     Running   0          7m45s   10.244.0.15   minikube   <none>           <none>
+webapp-85f9ff9b5b-7m2l7               1/1     Running   0          7m45s   10.244.0.16   minikube   <none>           <none>
 
 kubectl get svc -o wide
-NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                          AGE    SELECTOR
-fleetman-api-gateway        NodePort    10.98.8.110      <none>        8080:30020/TCP                   114m   app=api-gateway
-fleetman-position-tracker   ClusterIP   10.106.24.181    <none>        8080/TCP                         114m   app=position-tracker
-fleetman-queue              NodePort    10.111.188.189   <none>        8161:30010/TCP,61616:31843/TCP   114m   app=queue
-fleetman-webapp             NodePort    10.106.220.175   <none>        80:30080/TCP                     114m   app=webapp
-kubernetes                  ClusterIP   10.96.0.1        <none>        443/TCP                          129m   <none>
+NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                          AGE     SELECTOR
+fleetman-api-gateway        NodePort    10.104.60.11     <none>        8080:30020/TCP                   8m24s   app=api-gateway
+fleetman-mongodb            ClusterIP   10.97.215.160    <none>        27017/TCP                        8m24s   app=mongodb
+fleetman-position-tracker   ClusterIP   10.109.51.157    <none>        8080/TCP                         8m24s   app=position-tracker
+fleetman-queue              NodePort    10.96.199.66     <none>        8161:30010/TCP,61616:31103/TCP   8m24s   app=queue
+fleetman-webapp             NodePort    10.102.129.144   <none>        80:30080/TCP                     8m24s   app=webapp
+kubernetes                  ClusterIP   10.96.0.1        <none>        443/TCP                          63m     <none>
 ```
 
 Tu dois voir :
@@ -36,6 +38,7 @@ fleetman-queue
 fleetman-position-tracker
 fleetman-api-gateway
 fleetman-webapp
+fleetman-mongodb
 ```
 
 Les adresses `CLUSTER-IP` seront utilisées dans les tests DNS/port.
@@ -58,6 +61,7 @@ nslookup fleetman-queue
 nslookup fleetman-position-tracker
 nslookup fleetman-api-gateway
 nslookup fleetman-webapp
+nslookup fleetman-mongodb
 ```
 **Résultat attendu :**
 Chaque service doit résoudre vers un `CLUSTER-IP` interne (ex: `10.96.x.x`).
@@ -74,7 +78,7 @@ kubectl run -it network-test --image=alpine:3.18 -- sh
 apk add curl netcat-openbsd
 ```
 
-### Test 1 — Position Simulator → ActiveMQ
+### Test 1 — Position Simulator/Tracker → ActiveMQ
 
 Le simulateur publie vers la queue (`fleetman-queue:61616`).
 
@@ -86,14 +90,7 @@ Attendu :
 Connection to fleetman-queue 61616 port [tcp/*] succeeded!
 ```
 
-### Test 2 — Position Tracker → ActiveMQ
-
-Le tracker consomme aussi les messages :
-```bash
-nc -zv fleetman-queue 61616
-```
-
-### Test 3 — API Gateway → Position Tracker
+### Test 2 — API Gateway → Position Tracker
 
 Le gateway appelle le tracker sur port `8080` :
 ```bash
@@ -101,12 +98,22 @@ curl -v fleetman-position-tracker:8080/vehicles/City%20Truck
 ```
 Attendu : réponse HTTP 200 / contenu JSON.
 
-### Test 4 — WebApp → API Gateway
+### Test 3 — WebApp → API Gateway
 
 ```bash
 curl -v fleetman-api-gateway:8080
 ```
 Attendu : HTTP 200 / contenu JSON.
+
+### Test 4 — Position Tracker → mongodb
+
+```bash
+nc -zv fleetman-mongodb 27017
+```
+Attendu :
+```
+Connection to fleetman-queue 61616 port [tcp/*] succeeded!
+```
 
 ---
 
