@@ -1,4 +1,4 @@
-# kubernetes-aws-microservices
+# Déploiement de microservices dans une architecture Minikube et AWS EKS.
 
 ## Application de tracking et de suivi de livraison
 
