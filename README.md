@@ -2,8 +2,9 @@
 
 ## Application de tracking et de suivi de livraison
 
-([Déploiement et tests sur Minikube](README-deploy-test.md))\
-([Diagnostic sur Minikube](README-diagnostic.md))
+* [Déploiement et tests sur Minikube](README-minikube-deploy.md)
+* [Diagnostic sur Minikube](README-diagnostic.md)
+* [Déploiement sur Aws](README-aws-deploy.md)
 
 ![img-4.png](images/img-4.png)
 

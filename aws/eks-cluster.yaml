@@ -1,0 +1,33 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: demo-cluster
+  region: us-east-1
+  version: "1.31"   # ou "1.30" selon la dispo AWS
+
+# Désactivation de l'Auto Mode (important avec eksctl >= 0.215)
+autoModeConfig:
+  enabled: false
+
+vpc:
+  cidr: "10.0.0.0/16"
+
+managedNodeGroups:
+  - name: ng-1
+    instanceType: t3.small     # plus économique que t3.medium, suffisant pour 4 microservices
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 2
+    volumeSize: 20             # taille du disque en Go
+    ssh:
+      allow: true
+      publicKeyName: my-ec2-key
+    iam:
+      withAddonPolicies:
+        autoScaler: true       # pour utiliser le Cluster Autoscaler
+        cloudWatch: true       # pour les métriques/logs
+        albIngress: true       # si tu veux un Ingress Controller plus tard
+    tags:
+      environment: dev
+      project: microservices-demo
