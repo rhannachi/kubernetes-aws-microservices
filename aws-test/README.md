@@ -1,4 +1,9 @@
-# Créer un cluster EKS
+# Tester la création d'un cluster EKS + deploy nginx
+Avant de déployer notre architecture principale sur AWS, j'ai réalisé une petite application Nginx de test.\
+Si tout ça se passe bien pour vous ici, vous pouvez passer au déploiement de l'application principale.
+
+* [cluster.yaml](cluster.yaml)
+* [nginx-deployment.yaml](nginx-deployment.yaml)
 
 ## 1. Prérequis
 
@@ -208,24 +213,42 @@ Si tout est bon, la commande doit retourner une longue liste d’add-ons EKS (ve
 
 ## 3. Créer le cluster EKS
 
-Crée un fichier `eks-cluster.yaml` :
+Crée un fichier `cluster.yaml` :
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
+
 metadata:
   name: demo-cluster
   region: us-east-1
+  version: "1.34"
+
+# Désactivation de l'Auto Mode (important avec eksctl >= 0.215)
+autoModeConfig:
+  enabled: false
+
 vpc:
   cidr: "10.0.0.0/16"
 
 managedNodeGroups:
   - name: ng-1
-    instanceType: t3.medium
+    instanceType: t3.small     # plus économique que t3.medium, suffisant pour 4 microservices
     desiredCapacity: 2
+    minSize: 1
+    maxSize: 2
+    volumeSize: 20             # taille du disque en Go
     ssh:
       allow: true
       publicKeyName: <your-ssh-keypair-name>
+    iam:
+      withAddonPolicies:
+        autoScaler: true       # pour utiliser le Cluster Autoscaler
+        cloudWatch: true       # pour les métriques/logs
+        albIngress: true       # si tu veux un Ingress Controller plus tard
+    tags:
+      environment: dev
+      project: microservices-demo
 ```
 
 ### À propos du `publicKeyName`
@@ -293,7 +316,7 @@ c’est ta clé privée pour te connecter en SSH.
 ### Lancer la création
 
 ```bash
-eksctl create cluster -f eks-cluster.yaml
+eksctl create cluster -f cluster.yaml
 ```
 Durée : 15–20 minutes
 `eksctl` va :

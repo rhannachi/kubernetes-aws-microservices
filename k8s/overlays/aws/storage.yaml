@@ -1,0 +1,46 @@
+# ===========================================================
+# Manifest Kubernetes pour le stockage de MongoDB
+#
+# 1. StorageClass "cloud-ssd" :
+#    - provisioner: ebs.csi.aws.com → utilise le CSI driver AWS EBS (moderne et pleinement supporté)
+#    - volumeBindingMode: WaitForFirstConsumer → le volume n'est créé que lorsqu'un pod l'utilise réellement
+#    - reclaimPolicy: Delete → supprime automatiquement le volume EBS lorsque le PVC est supprimé
+#    - paramètres :
+#        • type: gp3 → volume EBS gp3 (SSD, performant et économique)
+#        • fsType: ext4 → type de système de fichiers pour le volume
+#
+# 2. PersistentVolumeClaim "mongo-pvc" :
+#    - demande 5Gi de stockage avec la StorageClass "cloud-ssd"
+#    - accessModes: ReadWriteOnce → un seul nœud peut monter le volume à la fois
+#    - utilisé par les pods MongoDB pour stocker les données de manière persistante
+#
+# Ce setup garantit :
+#    • Une intégration AWS EBS moderne et future-proof
+#    • Un nettoyage automatique du stockage lorsqu'il n'est plus utilisé
+#    • Une provision efficace pour un déploiement microservices
+# ===========================================================
+
+# StorageClass - définit la manière dont les volumes sont provisionnés
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cloud-ssd
+provisioner: ebs.csi.aws.com      # Utilisation du driver CSI AWS EBS moderne
+volumeBindingMode: WaitForFirstConsumer  # Le volume est créé uniquement quand un pod en a besoin
+reclaimPolicy: Delete             # Supprime automatiquement le volume EBS lorsque le PVC est supprimé
+parameters:
+  type: gp3                        # Type de volume AWS (SSD performant et économique)
+  fsType: ext4                      # Système de fichiers pour le volume
+---
+# PersistentVolumeClaim - demande de stockage à partir de la StorageClass définie
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  storageClassName: cloud-ssd      # Utilise la StorageClass "cloud-ssd" définie ci-dessus
+  accessModes:
+    - ReadWriteOnce                # Un seul nœud peut monter le volume à la fois
+  resources:
+    requests:
+      storage: 5Gi                 # Taille du volume demandé

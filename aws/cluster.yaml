@@ -1,0 +1,70 @@
+# ===========================================================
+# Cluster EKS optimisé pour un petit projet microservices
+#
+# Ce manifest crée un cluster EKS économique mais fonctionnel,
+# adapté à un projet avec 4 microservices et MongoDB.
+#
+# Pourquoi cette configuration :
+# 1. NodeGroup t3.small : économique (2 vCPU / 2Go RAM) pour un petit projet, suffisant pour nos microservices.
+# 2. Auto-scaling : minSize=1, desiredCapacity=2, maxSize=3 pour ajuster le nombre de nœuds en fonction de la charge.
+# 3. CloudWatch Logging complet : api, audit, authenticator, controllerManager, scheduler → facilite le debug et l’audit.
+# 4. IAM avec OIDC activé : permet aux pods d’utiliser des rôles IAM pour accéder aux services AWS (EBS, ALB…).
+# 5. Add-ons essentiels : vpc-cni, kube-proxy, coredns, metrics-server et aws-ebs-csi-driver pour le réseau, la gestion des pods et le stockage dynamique.
+# 6. Labels sur les nœuds : utiles pour organiser les déploiements et séparer les environnements (dev/prod).
+# 7. SSH optionnel : permet d’accéder aux nœuds si nécessaire pour debug.
+# ===========================================================
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: microservices-demo-cluster
+  region: us-east-1
+  version: "1.34"
+
+# Réseau simple : 1 VPC + subnets publics/privés gérés automatiquement par eksctl
+vpc:
+  cidr: "10.0.0.0/16"
+
+# Journaux CloudWatch essentiels pour le debug et l’audit
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+# IAM avec OIDC activé pour permettre aux pods d’utiliser des rôles IAM
+iam:
+  withOIDC: true
+
+# Add-ons essentiels pour le cluster et stockage dynamique
+addons:
+  - name: vpc-cni               # Gestion du réseau pour les pods
+  - name: kube-proxy             # Routage du trafic pod à pod
+  - name: coredns                # DNS interne du cluster
+  - name: metrics-server         # Metrics pour HPA et monitoring
+  - name: aws-ebs-csi-driver     # Provisionnement dynamique des volumes EBS
+
+# NodeGroup économique mais scalable pour nos microservices et MongoDB
+managedNodeGroups:
+  - name: micro-ng
+    instanceType: t3.small       # Nœud économique : 2 vCPU / 2Go RAM
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 3                   # Auto-scaling jusqu’à 3 nœuds si nécessaire
+    amiFamily: AmazonLinux2023
+
+    # Labels utiles pour organiser les pods et séparer dev/prod
+    labels:
+      environment: dev
+      team: backend
+
+    # Permissions IAM nécessaires pour CloudWatch, EBS et Ingress ALB
+    iam:
+      withAddonPolicies:
+        cloudWatch: true
+        ebs: true
+        albIngress: true
+
+    # SSH optionnel pour debug des nœuds EC2
+    #ssh:
+    #  allow: true
+    #  publicKeyName: my-ec2-key

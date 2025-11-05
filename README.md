@@ -2,9 +2,10 @@
 
 ## Application de tracking et de suivi de livraison
 
-* [Déploiement et tests sur Minikube](README-minikube-deploy.md)
-* [Diagnostic sur Minikube](README-diagnostic.md)
-* [Déploiement sur Aws](README-aws-deploy.md)
+* 1. [Déploiement et tests sur Minikube](README-minikube-deploy.md)
+* 2. [Diagnostic sur Minikube](README-diagnostic.md)
+* 3. [S'entraîner avec un déploiement AWS de test nginx](./aws-test/README.md)
+* 4. [Déploiement de l'application sur Aws](./aws/README.md)
 
 ![img-4.png](images/img-4.png)
 
