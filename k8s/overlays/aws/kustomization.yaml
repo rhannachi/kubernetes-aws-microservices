@@ -3,3 +3,6 @@ kind: Kustomization
 resources:
   - ../../base
   - storage.yaml
+  - fluentd-config.yaml
+  - elastic-stack.yaml
+
