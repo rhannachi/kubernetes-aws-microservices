@@ -47,7 +47,7 @@ addons:
 managedNodeGroups:
   - name: micro-ng
     instanceType: t3.small       # Nœud économique : 2 vCPU / 2Go RAM
-    desiredCapacity: 2
+    desiredCapacity: 2           # Nombre de nœuds au démarrage du cluster
     minSize: 1
     maxSize: 3                   # Auto-scaling jusqu’à 3 nœuds si nécessaire
     amiFamily: AmazonLinux2023
