@@ -1,12 +1,6 @@
 # Déploiement de microservices dans une architecture Minikube et AWS EKS.
 
-## Application de tracking et de suivi de livraison
-
-* 1. [Déploiement et tests sur Minikube](README-minikube-deploy.md)
-* 2. [Diagnostic sur Minikube](README-diagnostic.md)
-* 3. [S'entraîner avec un déploiement AWS de test nginx](./aws-test/README.md)
-* 4. [Déploiement de l'application sur Aws](./aws/README.md)
-
+### Application de tracking et de suivi de livraison
 ![img-4.png](images/img-4.png)
 
 L’architecture **microservices** de cette application est basée sur les images Docker suivantes :
@@ -16,6 +10,44 @@ L’architecture **microservices** de cette application est basée sur les image
 * [position-tracker](https://hub.docker.com/r/richardchesterwood/k8s-fleetman-position-tracker)
 * [position-simulator](https://hub.docker.com/r/richardchesterwood/k8s-fleetman-position-simulator)
 * [api-gateway](https://hub.docker.com/r/richardchesterwood/k8s-fleetman-api-gateway)
+
+## Minikube
+* 1. [Déploiement et tests sur Minikube](README-minikube-deploy.md)
+* 2. [Diagnostic sur Minikube](README-diagnostic.md)
+```bash
+k8s/
+├── base
+│   ├── kustomization.yaml
+│   ├── mongo.yaml
+│   └── workloads.yaml
+└── overlays
+    ├── aws
+    └── dev
+        ├── kustomization.yaml
+        └── storage.yaml
+```
+
+## AWS
+* 1. [S'entraîner avec un déploiement AWS de test nginx](./aws-test/README.md)
+* 2. [Déploiement de l'application sur Aws](./README-infra-aws.md)
+```bash
+k8s/
+├── base
+│   ├── kustomization.yaml
+│   ├── mongo.yaml
+│   └── workloads.yaml
+└── overlays
+    ├── aws
+    │   ├── kustomization.yaml
+    │   ├── logging
+    │   │   ├── elk.yaml
+    │   │   ├── fluentd.yaml
+    │   │   └── kustomization.yaml
+    │   └── storage.yaml
+    └── dev
+infra/
+└── cluster.yaml
+```
 
 
 ## Schéma ASCII de l’architecture microservices
