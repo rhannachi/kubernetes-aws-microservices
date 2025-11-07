@@ -4,6 +4,15 @@ L’objectif est de comprendre le déploiement des différentes parties de notre
 Dans cette section, nous nous concentrerons sur le déploiement de notre stack sur Minikube, plus précisément sur le déploiement de l’environnement de développement (overlays/dev) à l’aide de Kustomize.\
 **[k8s/overlays/dev/kustomization.yaml](k8s/overlays/dev/kustomization.yaml)**
 
+Je ne vais pas entrer dans les détails pour expliquer comment installer et configurer **kubectl** et **minikube** en local.\
+Je pars du principe que vous avez déjà **kubectl** et **minikube** installés sur votre ordinateur.\
+Pour démarrer **Minikube** avec le driver Docker :
+
+```bash
+minikube start --driver=docker
+```
+
+
 ### 1. Simuler un bug dans `position-tracker` et `position-simulator`
 
 Dans un premier temps, nous allons **empêcher** le déploiement correct de ces deux pods pour vérifier que la file de messages reste vide.
