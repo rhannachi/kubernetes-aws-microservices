@@ -1,0 +1,160 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logging
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: logging
+spec:
+  serviceName: elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:9.2.0
+          env:
+            - name: ES_JAVA_OPTS
+              value: "-Xms768m -Xmx768m"
+            - name: ES_SETTING_DISCOVERY_TYPE
+              value: "single-node"
+            - name: ES_SETTING_XPACK_SECURITY_ENABLED
+              value: "false"
+            - name: ES_SETTING_XPACK_SECURITY_ENROLLMENT_ENABLED
+              value: "false"
+            - name: ES_SETTING_XPACK_SECURITY_HTTP_SSL_ENABLED
+              value: "false"
+            - name: ES_SETTING_XPACK_SECURITY_TRANSPORT_SSL_ENABLED
+              value: "false"
+          ports:
+            - containerPort: 9200
+            - containerPort: 9300
+          volumeMounts:
+            - name: elasticsearch-storage
+              mountPath: /usr/share/elasticsearch/data
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 60
+            periodSeconds: 10
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data || true"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: elasticsearch-storage
+              mountPath: /usr/share/elasticsearch/data
+  volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: cloud-ssd
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-logging
+  namespace: logging
+spec:
+  ports:
+    - port: 9200
+      name: http
+    - port: 9300
+      name: transport
+  selector:
+    app: elasticsearch
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      initContainers:
+        - name: wait-for-elasticsearch
+          image: busybox:1.36
+          command: [ 'sh', '-c', 'until nc -z elasticsearch-logging 9200; do echo "Waiting for Elasticsearch..."; sleep 5; done' ]
+      containers:
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:9.2.0
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "http://elasticsearch-logging:9200"
+            - name: ELASTICSEARCH_SSL_VERIFICATIONMODE
+              value: "none"
+          ports:
+            - containerPort: 5601
+              name: http
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 60
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: logging
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 5601
+      targetPort: 5601
+  selector:
+    app: kibana
