@@ -1,0 +1,42 @@
+# kube-prometheus-values.yaml
+namespaceOverride: monitoring
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: admin123
+  service:
+    type: LoadBalancer
+  persistence:
+    enabled: true
+    storageClassName: cloud-ssd
+    size: 5Gi
+  sidecar:
+    datasources:
+      enabled: true
+      label: grafana_datasource
+  additionalDataSources:
+    - name: Elasticsearch
+      type: elasticsearch
+      access: proxy
+      url: http://elasticsearch-logging.logging.svc.cluster.local:9200
+      jsonData:
+        timeField: "@timestamp"
+        esVersion: 8
+        logMessageField: "log"
+        logLevelField: "level"
+      isDefault: false
+
+prometheus:
+  service:
+    type: LoadBalancer
+  prometheusSpec:
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: cloud-ssd
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
